@@ -38,17 +38,17 @@ kotlin {
 //        }
 //    }
 
-    linuxMips32 {
-        binaries {
-            staticLib()
-        }
-    }
-
-    linuxMipsel32 {
-        binaries {
-            staticLib()
-        }
-    }
+//    linuxMips32 {
+//        binaries {
+//            staticLib()
+//        }
+//    }
+//
+//    linuxMipsel32 {
+//        binaries {
+//            staticLib()
+//        }
+//    }
 
     mingwX64 { // Use your target instead.
         binaries {
@@ -91,15 +91,15 @@ kotlin {
             kotlin.srcDir("src/linuxX64Main/kotlin")
         }
 
-        val linuxMips32Main by getting {
-            dependsOn(commonMain)
-            kotlin.srcDir("src/linuxX64Main/kotlin")
-        }
-
-        val linuxMipsel32Main by getting {
-            dependsOn(commonMain)
-            kotlin.srcDir("src/linuxX64Main/kotlin")
-        }
+//        val linuxMips32Main by getting {
+//            dependsOn(commonMain)
+//            kotlin.srcDir("src/linuxX64Main/kotlin")
+//        }
+//
+//        val linuxMipsel32Main by getting {
+//            dependsOn(commonMain)
+//            kotlin.srcDir("src/linuxX64Main/kotlin")
+//        }
 
         val mingwX64Main by getting {
             dependsOn(commonMain)
