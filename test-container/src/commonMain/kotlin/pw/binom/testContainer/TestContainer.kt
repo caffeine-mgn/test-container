@@ -1,16 +1,15 @@
 package pw.binom.testContainer
 
 import pw.binom.atomic.AtomicReference
-import pw.binom.io.Closeable
 import pw.binom.network.TcpServerConnection
 import pw.binom.network.UdpConnection
 
-class Container(
+open class TestContainer(
     val image: String,
-    val environments: Map<String, String>,
-    val ports: List<Port>,
-    val reuse: Boolean,
-) : Closeable {
+    val environments: Map<String, String> = emptyMap(),
+    val ports: List<Port> = emptyList(),
+    val reuse: Boolean = false,
+) {
     internal var idAtomic = AtomicReference<String?>(null)
     val id
         get() = idAtomic.value
@@ -28,25 +27,32 @@ class Container(
         }
     )
 
-    internal fun prepare() {
+    fun start() {
         TestContainerThread.start(this)
-        TestContainerThread.registerForReuse(this)
     }
 
-    override fun close() {
+    fun stop() {
         TestContainerThread.stop(this)
+    }
+
+    fun markAutoRemove() {
+        check(id != null) { "Container not started" }
+        TestContainerThread.registerForReuse(this)
     }
 }
 
-operator fun <T : Container, R> T.invoke(func: (T) -> R): R {
+operator fun <T : TestContainer, R> T.invoke(func: (T) -> R): R {
     if (id == null) {
-        prepare()
+        start()
+        if (reuse) {
+            TestContainerThread.registerForReuse(this)
+        }
     }
     return try {
         func(this)
     } finally {
         if (!reuse) {
-            close()
+            stop()
         }
     }
 }

@@ -8,10 +8,13 @@ import pw.binom.coroutine.AsyncQueue
 import pw.binom.doFreeze
 import pw.binom.docker.*
 import pw.binom.io.httpClient.HttpClient
+import pw.binom.logger.Logger
+import pw.binom.logger.info
+import pw.binom.logger.infoSync
 import pw.binom.network.NetworkAddress
 import pw.binom.network.NetworkDispatcher
 
-object TestContainerThread {
+internal object TestContainerThread {
     private val w = Worker.create()
     private val q = AsyncQueue<Message>()
 
@@ -30,7 +33,8 @@ object TestContainerThread {
 //                ryukClient.register(listOf(mapOf("id" to ryukController.container.id)))
                 try {
                     while (true) {
-                        when (val msg = q.pop()) {
+                        val msg = q.pop()
+                        when (msg) {
                             is Message.StartContainer -> startContainer(
                                 dockerClient = dockerClient,
                                 container = msg.container,
@@ -48,6 +52,8 @@ object TestContainerThread {
                             )
                         }
                     }
+                } catch (e: Throwable) {
+                    e.printStackTrace()
                 } finally {
                     ryukClient.asyncClose()
                 }
@@ -63,7 +69,11 @@ object TestContainerThread {
         }
     }
 
-    private suspend fun registerForReuse(ryukClient: RyukClient, container: Container, future: FreezableFuture<Unit>) {
+    private suspend fun registerForReuse(
+        ryukClient: RyukClient,
+        container: TestContainer,
+        future: FreezableFuture<Unit>
+    ) {
         val containerId = container.id
         if (containerId == null) {
             future.resume(Result.failure(IllegalStateException("Container \"${container.image}\" not started")))
@@ -79,10 +89,11 @@ object TestContainerThread {
 
     private suspend fun startContainer(
         dockerClient: DockerClient,
-        container: Container,
+        container: TestContainer,
         future: FreezableFuture<Unit>
     ) {
         try {
+            dockerClient.pullImage(image = container.image)
             val createdContainer = dockerClient.createContainer(
                 CreateContainerRequest(
                     image = container.image,
@@ -106,7 +117,11 @@ object TestContainerThread {
         }
     }
 
-    private suspend fun stopContainer(dockerClient: DockerClient, container: Container, future: FreezableFuture<Unit>) {
+    private suspend fun stopContainer(
+        dockerClient: DockerClient,
+        container: TestContainer,
+        future: FreezableFuture<Unit>
+    ) {
         try {
             val containerId = container.id
             if (containerId == null) {
@@ -121,7 +136,7 @@ object TestContainerThread {
         }
     }
 
-    fun start(container: Container) {
+    fun start(container: TestContainer) {
         val f = FreezableFuture<Unit>()
         q.push(
             Message.StartContainer(
@@ -132,7 +147,7 @@ object TestContainerThread {
         f.joinAndGetOrThrow()
     }
 
-    fun stop(container: Container) {
+    fun stop(container: TestContainer) {
         val f = FreezableFuture<Unit>()
         q.push(
             Message.StopContainer(
@@ -143,7 +158,7 @@ object TestContainerThread {
         f.joinAndGetOrThrow()
     }
 
-    fun registerForReuse(container: Container) {
+    fun registerForReuse(container: TestContainer) {
         val f = FreezableFuture<Unit>()
         q.push(
             Message.RegisterForReuseContainer(
@@ -155,15 +170,16 @@ object TestContainerThread {
     }
 
     private sealed interface Message {
-        class StartContainer(val container: Container, val future: FreezableFuture<Unit>) : Message {
+        data class StartContainer(val container: TestContainer, val future: FreezableFuture<Unit>) : Message {
 
         }
 
-        class StopContainer(val container: Container, val future: FreezableFuture<Unit>) : Message {
+        data class StopContainer(val container: TestContainer, val future: FreezableFuture<Unit>) : Message {
 
         }
 
-        class RegisterForReuseContainer(val container: Container, val future: FreezableFuture<Unit>) : Message {
+        data class RegisterForReuseContainer(val container: TestContainer, val future: FreezableFuture<Unit>) :
+            Message {
 
         }
     }

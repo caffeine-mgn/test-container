@@ -72,8 +72,9 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(kotlin("stdlib-common"))
-                api("pw.binom.io:concurrency:${pw.binom.Versions.LIB_VERSION}")
-                api("pw.binom.io:docker-api:${pw.binom.Versions.LIB_VERSION}")
+                api("pw.binom.io:concurrency:${pw.binom.Versions.BINOM_VERSION}")
+                api("pw.binom.io:logger:${pw.binom.Versions.BINOM_VERSION}")
+                api("pw.binom.io:docker-api:${pw.binom.Versions.DOCKER_API_VERSION}")
             }
         }
 
@@ -117,7 +118,7 @@ kotlin {
             dependencies {
                 api(kotlin("test-common"))
                 api(kotlin("test-annotations-common"))
-                api("pw.binom.io:postgresql-async:${pw.binom.Versions.LIB_VERSION}")
+                api("pw.binom.io:postgresql-async:${pw.binom.Versions.BINOM_VERSION}")
             }
         }
         val jvmTest by getting {
