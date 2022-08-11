@@ -1,6 +1,5 @@
 package pw.binom
 
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskContainer
 
@@ -11,9 +10,9 @@ fun TaskContainer.eachKotlinTest(func: (Task) -> Unit) {
         .forEach(func)
 }
 
-fun TaskContainer.eachKotlinCompile(func: (Task) -> Unit) {
-    this.mapNotNull { it as? org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile<*> }
-        .forEach(func)
-    this.mapNotNull { it as? org.jetbrains.kotlin.gradle.tasks.AbstractKotlinNativeCompile<*, *> }
-        .forEach(func)
-}
+//fun TaskContainer.eachKotlinCompile(func: (Task) -> Unit) {
+//    this.mapNotNull { it as? org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile<*> }
+//        .forEach(func)
+//    this.mapNotNull { it as? org.jetbrains.kotlin.gradle.tasks.AbstractKotlinNativeCompile<*, *> }
+//        .forEach(func)
+//}

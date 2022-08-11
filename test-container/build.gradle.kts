@@ -1,7 +1,7 @@
 import kotlinx.coroutines.withTimeout
-import pw.binom.eachKotlinCompile
 import java.util.*
 import java.time.Duration
+
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("kotlinx-serialization")
@@ -12,53 +12,38 @@ apply {
 }
 
 kotlin {
-    jvm {
-        compilations.all {
-            kotlinOptions {
-//                jvmTarget = "11"
+    jvm()
+
+    linuxX64 {
+        binaries {
+            staticLib()
+        }
+    }
+    if (pw.binom.Target.LINUX_ARM32HFP_SUPPORT) {
+        linuxArm32Hfp {
+            binaries {
+                staticLib()
+            }
+        }
+    }
+    if (pw.binom.Target.LINUX_ARM64_SUPPORT) {
+        linuxArm64 {
+            binaries {
+                staticLib()
             }
         }
     }
 
-    linuxX64 { // Use your target instead.
+    mingwX64 {
         binaries {
             staticLib()
         }
     }
-
-    linuxArm32Hfp {
-        binaries {
-            staticLib()
-        }
-    }
-
-//    linuxArm64 {
-//        binaries {
-//            staticLib()
-//        }
-//    }
-
-//    linuxMips32 {
-//        binaries {
-//            staticLib()
-//        }
-//    }
-//
-//    linuxMipsel32 {
-//        binaries {
-//            staticLib()
-//        }
-//    }
-
-    mingwX64 { // Use your target instead.
-        binaries {
-            staticLib()
-        }
-    }
-
-    mingwX86 { // Use your target instead.
-        binaries {
-            staticLib()
+    if (pw.binom.Target.MINGW_X86_SUPPORT) {
+        mingwX86 {
+            binaries {
+                staticLib()
+            }
         }
     }
 
@@ -72,23 +57,25 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(kotlin("stdlib-common"))
-                api("pw.binom.io:concurrency:${pw.binom.Versions.BINOM_VERSION}")
-                api("pw.binom.io:logger:${pw.binom.Versions.BINOM_VERSION}")
+                api("pw.binom.io:atomic:${pw.binom.Versions.BINOM_VERSION}")
+                api("pw.binom.io:core:${pw.binom.Versions.BINOM_VERSION}")
+//                api("pw.binom.io:logger:${pw.binom.Versions.BINOM_VERSION}")
                 api("pw.binom.io:docker-api:${pw.binom.Versions.DOCKER_API_VERSION}")
             }
         }
 
         val linuxX64Main by getting {
             dependsOn(commonMain)
-            kotlin.srcDir("src/linuxX64Main/kotlin")
         }
-//        val linuxArm64Main by getting {
-//            dependsOn(commonMain)
-//            kotlin.srcDir("src/linuxX64Main/kotlin")
-//        }
-        val linuxArm32HfpMain by getting {
-            dependsOn(commonMain)
-            kotlin.srcDir("src/linuxX64Main/kotlin")
+        if (pw.binom.Target.LINUX_ARM64_SUPPORT) {
+            val linuxArm64Main by getting {
+                dependsOn(linuxX64Main)
+            }
+        }
+        if (pw.binom.Target.LINUX_ARM32HFP_SUPPORT) {
+            val linuxArm32HfpMain by getting {
+                dependsOn(linuxX64Main)
+            }
         }
 
 //        val linuxMips32Main by getting {
@@ -102,16 +89,16 @@ kotlin {
 //        }
 
         val mingwX64Main by getting {
-            dependsOn(commonMain)
+            dependsOn(linuxX64Main)
         }
-        val mingwX86Main by getting {
-            dependsOn(commonMain)
-            kotlin.srcDir("src/mingwX64Main/kotlin")
+        if (pw.binom.Target.MINGW_X86_SUPPORT) {
+            val mingwX86Main by getting {
+                dependsOn(mingwX64Main)
+            }
         }
 
         val macosX64Main by getting {
-            dependsOn(commonMain)
-            kotlin.srcDir("src/linuxX64Main/kotlin")
+            dependsOn(linuxX64Main)
         }
 
         val commonTest by getting {
@@ -119,12 +106,13 @@ kotlin {
                 api(kotlin("test-common"))
                 api(kotlin("test-annotations-common"))
                 api("pw.binom.io:postgresql-async:${pw.binom.Versions.BINOM_VERSION}")
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-test:${pw.binom.Versions.KOTLINX_COROUTINES_VERSION}")
             }
         }
         val jvmTest by getting {
             dependsOn(commonTest)
             dependencies {
-                api(kotlin("test-junit"))
+                api(kotlin("test"))
             }
         }
         val linuxX64Test by getting {
@@ -133,4 +121,14 @@ kotlin {
     }
 }
 
+tasks{
+    withType(Test::class) {
+        useJUnitPlatform()
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+        testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
 apply<pw.binom.plugins.DocsPlugin>()

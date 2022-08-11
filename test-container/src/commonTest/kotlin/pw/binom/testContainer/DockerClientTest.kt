@@ -1,20 +1,18 @@
 package pw.binom.testContainer
 
-import pw.binom.concurrency.DeadlineTimer
+import kotlinx.coroutines.delay
 import pw.binom.db.postgresql.async.PGConnection
 import pw.binom.docker.DockerClient
 import pw.binom.io.httpClient.HttpClient
+import pw.binom.io.httpClient.create
 import pw.binom.io.use
 import pw.binom.network.NetworkAddress
-import pw.binom.network.NetworkDispatcher
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
+import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalTime::class)
 class DockerClientTest {
     class PostgresTestContainer(reuse: Boolean) : TestContainer(
         image = "postgres:11",
@@ -26,61 +24,47 @@ class DockerClientTest {
         ports = listOf(
             TestContainer.Port(internalPort = 5432)
         ),
-        reuse = reuse,
+        reuse = reuse
     )
 
     val pgReuse = PostgresTestContainer(reuse = true)
     val pgNonReuse = PostgresTestContainer(reuse = false)
 
     @Test
-    fun resueTest() {
+    fun resueTest() = binomTest {
         pgReuse {
-            val nd = NetworkDispatcher()
-            val dt = DeadlineTimer.create()
-            nd.runSingle {
-                dt.delay(Duration.seconds(5))
-                val pgAddress = NetworkAddress.Immutable(host = "127.0.0.1", port = it.ports[0].externalPort)
-                val connection = PGConnection.connect(
-                    address = pgAddress,
-                    dataBase = "tmpDb",
-                    userName = "postgres",
-                    password = "postgres",
-                    networkDispatcher = nd,
-                )
-                connection.createStatement().use {
-                    it.executeUpdate("create table if not exists test_table (id bigint primary key)")
-                }
+            HttpClient.create(connectionFactory = GLOBAL_DOCKER_CONNECTION_FACTORY).use { httpClient ->
+                val dockerClient = DockerClient(httpClient)
+                assertTrue(dockerClient.getContainers(ids = listOf(pgReuse.id!!)).any())
+            }
+            delay(5.seconds)
+            val pgAddress = NetworkAddress.Immutable(host = "127.0.0.1", port = it.ports[0].externalPort)
+            val connection = PGConnection.connect(
+                address = pgAddress,
+                dataBase = "tmpDb",
+                userName = "postgres",
+                password = "postgres"
+            )
+            connection.createStatement().use {
+                it.executeUpdate("create table if not exists test_table (id bigint primary key)")
             }
         }
         assertNotNull(pgReuse.id)
-        NetworkDispatcher().use {
-            it.runSingle {
-                HttpClient.create(it).use { httpClient ->
-                    val dockerClient = DockerClient(httpClient)
-                    assertTrue(dockerClient.getContainers(ids = listOf(pgReuse.id!!)).any())
-                }
-            }
-        }
     }
 
     @Test
-    fun nonReuseTest(){
+    fun nonReuseTest() = binomTest {
         pgNonReuse {
-            val nd = NetworkDispatcher()
-            val dt = DeadlineTimer.create()
-            nd.runSingle {
-                dt.delay(Duration.seconds(5))
-                val pgAddress = NetworkAddress.Immutable(host = "127.0.0.1", port = it.ports[0].externalPort)
-                val connection = PGConnection.connect(
-                    address = pgAddress,
-                    dataBase = "tmpDb",
-                    userName = "postgres",
-                    password = "postgres",
-                    networkDispatcher = nd,
-                )
-                connection.createStatement().use {
-                    it.executeUpdate("create table if not exists test_table (id bigint primary key)")
-                }
+            delay(5.seconds)
+            val pgAddress = NetworkAddress.Immutable(host = "127.0.0.1", port = it.ports[0].externalPort)
+            val connection = PGConnection.connect(
+                address = pgAddress,
+                dataBase = "tmpDb",
+                userName = "postgres",
+                password = "postgres"
+            )
+            connection.createStatement().use {
+                it.executeUpdate("create table if not exists test_table (id bigint primary key)")
             }
         }
         assertNull(pgReuse.id)

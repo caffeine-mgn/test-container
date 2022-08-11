@@ -1,33 +1,40 @@
 package pw.binom.testContainer
 
-import pw.binom.docker.*
-import pw.binom.network.NetworkAddress
-import pw.binom.network.NetworkDispatcher
-import pw.binom.docker.Container as DockerContainer
+import pw.binom.Environment
+import pw.binom.OS
+import pw.binom.docker.DockerClient
+import pw.binom.docker.dto.CreateContainerRequest
+import pw.binom.docker.dto.HostConfig
+import pw.binom.docker.dto.PortBind
+import pw.binom.network.TcpServerConnection
+import pw.binom.os
+import pw.binom.docker.dto.Container as DockerContainer
+
+private var defaultImage = "testcontainers/ryuk:0.3.2"
 
 class RyukController private constructor(val dockerClient: DockerClient, val container: DockerContainer) {
     companion object {
         suspend fun create(dockerClient: DockerClient): RyukController {
-            val created1 = dockerClient.getContainers(names = listOf("testcontainers-ryuk-${RUN_INSTANCE}"))
-                .firstOrNull()
+            val created1 =
+                dockerClient.getContainers(names = listOf("testcontainers-ryuk-$RUN_INSTANCE")).firstOrNull()
             if (created1 != null) {
                 return RyukController(dockerClient, created1)
             }
-
-            val nd = NetworkDispatcher()
-            val srv = nd.bindTcp(NetworkAddress.Immutable(host = "127.0.0.1", port = 0))
-            val freePort = srv.port
-            srv.close()
-            nd.close()
-            dockerClient.pullImage("testcontainers/ryuk:0.3.2")
+            val freePort = TcpServerConnection.randomPort()
+            dockerClient.pullImage(defaultImage)
+            val pathToDockerSock = when (Environment.os) {
+                OS.WINDOWS -> "//var/run/docker.sock"
+                OS.LINUX, OS.MACOS -> "/var/run/docker.sock"
+                else -> throw IllegalStateException("Can't determinate path to docker sock")
+            }
             val created = dockerClient.createContainer(
                 name = "testcontainers-ryuk-$RUN_INSTANCE",
                 arguments = CreateContainerRequest(
-                    image = "testcontainers/ryuk:0.3.2",
+                    image = defaultImage,
                     labels = mapOf("session" to RUN_INSTANCE.toString()),
                     exposedPorts = mapOf("8080/tcp" to mapOf()),
                     hostConfig = HostConfig(
-                        binds = listOf("//var/run/docker.sock:/var/run/docker.sock"),
+                        binds = listOf("$pathToDockerSock:/var/run/docker.sock"),
                         portBindings = mapOf("8080/tcp" to listOf(PortBind(freePort.toString()))),
                         privileged = true,
                         autoRemove = true
@@ -37,8 +44,7 @@ class RyukController private constructor(val dockerClient: DockerClient, val con
             )
             dockerClient.startContainer(id = created.id)
             return RyukController(
-                dockerClient,
-                dockerClient.getContainers(names = listOf("testcontainers-ryuk-${RUN_INSTANCE}")).first()
+                dockerClient, dockerClient.getContainers(names = listOf("testcontainers-ryuk-$RUN_INSTANCE")).first()
             )
         }
     }
@@ -47,11 +53,10 @@ class RyukController private constructor(val dockerClient: DockerClient, val con
         get() = container.ports!!.first().PublicPort!!
 
     private suspend fun find() =
-        dockerClient.getContainers(names = listOf("testcontainers-ryuk-${RUN_INSTANCE}"))
-            .firstOrNull()
+        dockerClient.getContainers(names = listOf("testcontainers-ryuk-$RUN_INSTANCE")).firstOrNull()
 
     suspend fun destory() {
         dockerClient.stopContainer(id = container.id)
-        dockerClient.remove(id = container.id)
+        dockerClient.removeContainer(id = container.id)
     }
 }

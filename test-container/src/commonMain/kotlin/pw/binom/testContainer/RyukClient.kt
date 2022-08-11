@@ -1,18 +1,17 @@
 package pw.binom.testContainer
 
+import kotlinx.coroutines.Dispatchers
 import pw.binom.io.AsyncCloseable
 import pw.binom.io.bufferedReader
 import pw.binom.io.bufferedWriter
-import pw.binom.network.NetworkAddress
-import pw.binom.network.NetworkDispatcher
-import pw.binom.network.TcpConnection
+import pw.binom.network.*
 
 class RyukClient(val connection: TcpConnection) : AsyncCloseable {
     private val writer = connection.bufferedWriter(closeParent = false)
     private val reader = connection.bufferedReader(closeParent = false)
 
     companion object {
-        suspend fun connect(networkDispatcher: NetworkDispatcher, addr: NetworkAddress) =
+        suspend fun connect(networkDispatcher: NetworkCoroutineDispatcher = Dispatchers.Network, addr: NetworkAddress) =
             RyukClient(networkDispatcher.tcpConnect(addr))
     }
 
