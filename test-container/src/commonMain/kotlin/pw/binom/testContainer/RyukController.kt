@@ -22,11 +22,6 @@ class RyukController private constructor(val dockerClient: DockerClient, val con
             }
             val freePort = TcpServerConnection.randomPort()
             dockerClient.pullImage(defaultImage)
-            val pathToDockerSock = when (Environment.os) {
-                OS.WINDOWS -> "//var/run/docker.sock"
-                OS.LINUX, OS.MACOS -> "/var/run/docker.sock"
-                else -> throw IllegalStateException("Can't determinate path to docker sock")
-            }
             val created = dockerClient.createContainer(
                 name = "testcontainers-ryuk-$RUN_INSTANCE",
                 arguments = CreateContainerRequest(
@@ -34,7 +29,7 @@ class RyukController private constructor(val dockerClient: DockerClient, val con
                     labels = mapOf("session" to RUN_INSTANCE.toString()),
                     exposedPorts = mapOf("8080/tcp" to mapOf()),
                     hostConfig = HostConfig(
-                        binds = listOf("$pathToDockerSock:/var/run/docker.sock"),
+                        binds = listOf("$UNIX_SOCKET_ADDRESS:/var/run/docker.sock"),
                         portBindings = mapOf("8080/tcp" to listOf(PortBind(freePort.toString()))),
                         privileged = true,
                         autoRemove = true

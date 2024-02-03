@@ -1,34 +1,47 @@
 buildscript {
 
     repositories {
+        maven(url = "https://repo.binom.pw")
         mavenLocal()
         mavenCentral()
-        jcenter()
-        maven(url = "https://repo.binom.pw")
     }
 
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21")
     }
 }
 
-plugins{
-        kotlin("jvm") version "1.7.10"
+val binomVersion = project.property("binom.version") as String
+val dockerApiVersion = project.property("docker_api.version") as String
+val kotlinxCoroutinesVersion = project.property("kotlinx_coroutines.version") as String
+val kotlinxSerializationVersion = project.property("kotlinx_serialization.version") as String
+
+plugins {
+    kotlin("jvm") version "1.9.21"
+    id("com.github.gmazzo.buildconfig") version "3.0.3"
+}
+
+buildConfig {
+    packageName(project.group.toString())
+    buildConfigField("String", "BINOM_VERSION", "\"$binomVersion\"")
+    buildConfigField("String", "KOTLIN_VERSION", "\"${kotlin.coreLibrariesVersion}\"")
+    buildConfigField("String", "DOCKER_API_VERSION", "\"$dockerApiVersion\"")
+    buildConfigField("String", "KOTLINX_COROUTINES_VERSION", "\"$kotlinxCoroutinesVersion\"")
+    buildConfigField("String", "KOTLINX_SERIALIZATION_VERSION", "\"$kotlinxSerializationVersion\"")
 }
 
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
     maven(url = "https://repo.binom.pw")
     maven(url = "https://plugins.gradle.org/m2/")
 }
 
 dependencies {
-    api("org.jetbrains.kotlin:kotlin-stdlib:1.7.10")
-    api("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10")
-    api("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.7.10")
-    api("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10")
-    api("org.jetbrains.dokka:dokka-gradle-plugin:1.6.0")
-    api("pw.binom:binom-publish:0.1.2")
+    api("org.jetbrains.kotlin:kotlin-stdlib:1.9.21")
+    api("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21")
+    api("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.21")
+    api("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21")
+    api("org.jetbrains.dokka:dokka-gradle-plugin:1.9.10")
+    api("pw.binom:binom-publish:0.1.14")
 }

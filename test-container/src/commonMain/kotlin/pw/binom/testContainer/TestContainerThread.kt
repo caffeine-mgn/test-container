@@ -3,8 +3,6 @@ package pw.binom.testContainer
 import pw.binom.FreezableFuture
 import pw.binom.concurrency.Worker
 import pw.binom.concurrency.joinAndGetOrThrow
-import pw.binom.coroutine.AsyncQueue
-import pw.binom.doFreeze
 import pw.binom.docker.*
 import pw.binom.docker.dto.CreateContainerRequest
 import pw.binom.docker.dto.Env
@@ -13,7 +11,6 @@ import pw.binom.docker.dto.PortBind
 import pw.binom.getOrException
 import pw.binom.io.ClosedException
 import pw.binom.io.httpClient.HttpClient
-import pw.binom.network.NetworkAddress
 
 //internal object TestContainerThread {
 //    private val w = Worker.create()

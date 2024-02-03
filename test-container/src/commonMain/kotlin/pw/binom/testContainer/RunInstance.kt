@@ -1,9 +1,6 @@
 package pw.binom.testContainer
 
-import pw.binom.doFreeze
-import pw.binom.nextUuid
-import kotlin.native.concurrent.SharedImmutable
+import pw.binom.uuid.nextUuid
 import kotlin.random.Random
 
-@SharedImmutable
-val RUN_INSTANCE = Random.nextUuid().doFreeze()
+val RUN_INSTANCE = Random.nextUuid()

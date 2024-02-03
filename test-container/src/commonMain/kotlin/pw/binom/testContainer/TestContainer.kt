@@ -57,9 +57,10 @@ open class TestContainer(
                 entrypoint = entryPoint,
             )
         )
+        val ryuk = Globals.getRyukClient()
         Globals.dockerClient.startContainer(createdContainer.id)
         idAtomic.setValue(createdContainer.id)
-        Globals.getRyukClient().register(images = listOf(mapOf("id" to createdContainer.id)))
+        ryuk.register(images = listOf(mapOf("id" to createdContainer.id)))
     }
 
     open suspend fun stop() {

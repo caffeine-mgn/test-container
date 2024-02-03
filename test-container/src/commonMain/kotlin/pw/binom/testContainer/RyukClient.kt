@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import pw.binom.io.AsyncCloseable
 import pw.binom.io.bufferedReader
 import pw.binom.io.bufferedWriter
+import pw.binom.io.socket.InetNetworkAddress
 import pw.binom.network.*
 
 class RyukClient(val connection: TcpConnection) : AsyncCloseable {
@@ -11,7 +12,7 @@ class RyukClient(val connection: TcpConnection) : AsyncCloseable {
     private val reader = connection.bufferedReader(closeParent = false)
 
     companion object {
-        suspend fun connect(networkDispatcher: NetworkCoroutineDispatcher = Dispatchers.Network, addr: NetworkAddress) =
+        suspend fun connect(networkDispatcher: NetworkCoroutineDispatcher = Dispatchers.Network, addr: InetNetworkAddress) =
             RyukClient(networkDispatcher.tcpConnect(addr))
     }
 
