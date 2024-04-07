@@ -1,5 +1,4 @@
-import pw.binom.publish.ifNotMac
-import pw.binom.publish.useDefault
+import pw.binom.publish.allTargets
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
@@ -11,14 +10,17 @@ apply {
 }
 
 kotlin {
-    ifNotMac {
-        jvm()
-        linuxX64()
-        linuxArm64()
-        mingwX64()
+//    ifNotMac {
+//        jvm()
+//        linuxX64()
+//        linuxArm64()
+//        mingwX64()
+//    }
+//    macosX64()
+    allTargets {
+        -"js"
     }
-    macosX64()
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -38,15 +40,12 @@ kotlin {
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-test:${pw.binom.Versions.KOTLINX_COROUTINES_VERSION}")
             }
         }
-        ifNotMac {
-            val jvmTest by getting {
-                dependsOn(commonTest)
-                dependencies {
-                    api(kotlin("test"))
-                }
+        val jvmTest by getting {
+            dependsOn(commonTest)
+            dependencies {
+                api(kotlin("test"))
             }
         }
-        useDefault()
     }
 }
 
