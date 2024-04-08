@@ -1,13 +1,14 @@
 import pw.binom.publish.allTargets
+import pw.binom.publish.applyDefaultHierarchyBinomTemplate
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("kotlinx-serialization")
 }
 
-apply {
-    plugin(pw.binom.plugins.BinomPublishPlugin::class.java)
-}
+//apply {
+//    plugin(pw.binom.plugins.BinomPublishPlugin::class.java)
+//}
 
 kotlin {
 //    ifNotMac {
@@ -20,12 +21,11 @@ kotlin {
     allTargets {
         -"js"
     }
-    applyDefaultHierarchyTemplate()
+//    applyDefaultHierarchyTemplate()
+    applyDefaultHierarchyBinomTemplate()
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(kotlin("stdlib-common"))
-//                api("pw.binom.io:atomic:${pw.binom.Versions.BINOM_VERSION}")
                 api("pw.binom.io:core:${pw.binom.Versions.BINOM_VERSION}")
                 api("pw.binom.io:docker-api:${pw.binom.Versions.DOCKER_API_VERSION}")
             }
@@ -59,4 +59,5 @@ tasks {
         testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
 }
-apply<pw.binom.plugins.DocsPlugin>()
+apply<pw.binom.publish.plugins.PrepareProject>()
+//apply<pw.binom.plugins.DocsPlugin>()

@@ -1,5 +1,5 @@
 package pw.binom.plugins
-
+/*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
@@ -83,3 +83,4 @@ class BinomPublishPlugin : Plugin<Project> {
     }
 
 }
+*/

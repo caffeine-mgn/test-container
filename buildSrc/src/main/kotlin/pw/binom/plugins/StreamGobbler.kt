@@ -1,5 +1,6 @@
 package pw.binom.plugins
 
+/*
 import java.io.BufferedReader
 import java.io.IOException
 
@@ -20,4 +21,4 @@ class StreamGobbler constructor(var stream: InputStream) : Thread() {
             ioe.printStackTrace()
         }
     }
-}
+}*/

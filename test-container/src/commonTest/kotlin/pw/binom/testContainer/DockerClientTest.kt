@@ -7,6 +7,7 @@ import pw.binom.io.httpClient.HttpClient
 import pw.binom.io.httpClient.create
 import pw.binom.io.socket.NetworkAddress
 import pw.binom.io.use
+import pw.binom.io.useAsync
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -45,7 +46,7 @@ class DockerClientTest {
                 userName = "postgres",
                 password = "postgres"
             )
-            connection.createStatement().use {
+            connection.createStatement().useAsync {
                 it.executeUpdate("create table if not exists test_table (id bigint primary key)")
             }
         }
@@ -64,7 +65,7 @@ class DockerClientTest {
                     userName = "postgres",
                     password = "postgres"
                 )
-                connection.createStatement().use {
+                connection.createStatement().useAsync {
                     it.executeUpdate("create table if not exists test_table (id bigint primary key)")
                 }
             } catch (e:Throwable) {
