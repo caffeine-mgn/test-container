@@ -4,6 +4,7 @@ import pw.binom.publish.applyDefaultHierarchyBinomTemplate
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("kotlinx-serialization")
+    id("maven-publish")
 }
 
 //apply {
